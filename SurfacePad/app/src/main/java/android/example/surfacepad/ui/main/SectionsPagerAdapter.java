@@ -10,6 +10,8 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import android.example.surfacepad.R;
 
+import java.util.Objects;
+
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
@@ -27,9 +29,19 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        // getItem is called to instantiate the fragment for the given page.
-        // Return a PlaceholderFragment (defined as a static inner class below).
-        return PlaceholderFragment.newInstance(position + 1);
+        Fragment fragment = null;
+        switch (position) {
+            case 0:
+                fragment = new TrainingFragment();
+                break;
+            case 1:
+                fragment = new RecognitionFragment();
+                break;
+            case 2:
+                fragment = new EtcFragment();
+                break;
+        }
+        return Objects.requireNonNull(fragment);
     }
 
     @Nullable
@@ -40,6 +52,6 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return TAB_TITLES.length;
     }
 }

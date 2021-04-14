@@ -2,5 +2,9 @@
     <string name="app_name">SurfacePad</string>
     <string name="tab_text_1">Training</string>
     <string name="tab_text_2">Recognition</string>
-    <string name="tab_text_3">HI</string>
+    <string name="tab_text_3">Etc</string>
+    <string name="bt_record">Record</string>
+    <string name="bt_play">Play</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
