@@ -1,0 +1,12 @@
+1. Install ffmpeg with following command
+sudo apt install ffmpeg
+
+2. Convert with ffmpeg
+ffmpeg -f s16le -ar 44.1k -ac 2 -i [pcm] [wav]
+
+
+-f s16le    : signed 16-bit little endian samples
+-ar 44.1k   : sample rate 44.1kHz
+-ac 2       : 2 channels (stereo)
+-i [pcm]    : input file
+[wav]       : output file
