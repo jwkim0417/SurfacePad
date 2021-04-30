@@ -30,7 +30,7 @@ public class TrainingFragment extends Fragment {
     private final int mSampleRate = 44100;
     private final short mChannelCount = AudioFormat.CHANNEL_IN_STEREO;
     private final short mAudioFormat = AudioFormat.ENCODING_PCM_16BIT;
-    private final int mBufferSize = AudioTrack.getMinBufferSize(mSampleRate, mChannelCount, mAudioFormat);
+    private final int mBufferSize = AudioRecord.getMinBufferSize(mSampleRate, mChannelCount, mAudioFormat);
     private String mFilename = "";
 
     private AudioRecord mAudioRecord = null;
@@ -43,8 +43,8 @@ public class TrainingFragment extends Fragment {
 
 //    private AudioRecord findAudioRecord() {
 //        for (int rate : new int[] {44100, 48000}) {
-//            for (short audioFormat : new short[] { AudioFormat.ENCODING_PCM_16BIT, AudioFormat.ENCODING_PCM_8BIT }) {
-//                for (short channelConfig : new short[] { AudioFormat.CHANNEL_IN_STEREO, AudioFormat.CHANNEL_IN_MONO }) {
+//            for (short audioFormat : new short[] { AudioFormat.ENCODING_PCM_8BIT, AudioFormat.ENCODING_PCM_16BIT }) {
+//                for (short channelConfig : new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO }) {
 //                    try {
 //                        Log.d("AudiopRecording", "Attempting rate " + rate + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
 //                        int bufferSize = AudioRecord.getMinBufferSize(rate, channelConfig, audioFormat);
