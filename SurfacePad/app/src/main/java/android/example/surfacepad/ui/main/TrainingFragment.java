@@ -3,7 +3,6 @@ package android.example.surfacepad.ui.main;
 import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 
@@ -22,19 +21,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class TrainingFragment extends Fragment {
     private static final String TAG = "TRAINING";
 
-    private final int mAudioSource = MediaRecorder.AudioSource.MIC;
-    private final int mSampleRate = 44100;
+    private final int mSampleRate = 48000;
     private final short mChannelCount = AudioFormat.CHANNEL_IN_STEREO;
     private final short mAudioFormat = AudioFormat.ENCODING_PCM_16BIT;
     private final int mBufferSize = AudioRecord.getMinBufferSize(mSampleRate, mChannelCount, mAudioFormat);
     private String mFilename = "";
 
     private AudioRecord mAudioRecord = null;
-    private Thread mRecordThread = null;
     private boolean isRecording = false;
 
     public TrainingFragment() {
@@ -66,15 +64,35 @@ public class TrainingFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAudioRecord = new AudioRecord(mAudioSource, mSampleRate, mChannelCount, mAudioFormat, mBufferSize);
-        //mAudioRecord = findAudioRecord();
-        mAudioRecord.startRecording();
+    }
 
-        mRecordThread = new Thread(() -> {
-            SimpleDateFormat simpleDate = new SimpleDateFormat("yyyy-MM-dd-hh:mm:ss");
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_training, container, false);
+    }
+
+    @Override
+    public void onViewCreated (@NotNull View view,
+                               Bundle savedInstanceState) {
+        Button bt_record = view.findViewById(R.id.bt_record);
+        bt_record.setOnClickListener(this::onRecord);
+    }
+
+    public class mRecordThread extends Thread {
+        public mRecordThread() {
+            int mAudioSource = MediaRecorder.AudioSource.MIC;
+            mAudioRecord = new AudioRecord(mAudioSource, mSampleRate, mChannelCount, mAudioFormat, mBufferSize);
+            //mAudioRecord = findAudioRecord();
+            mAudioRecord.startRecording();
+            SimpleDateFormat simpleDate = new SimpleDateFormat("yyyy-MM-dd-hh:mm:ss", Locale.KOREA);
             mFilename = simpleDate.format(new Date(System.currentTimeMillis())) + ".pcm";
             Log.d("FILENAME", mFilename);
 
+        }
+
+        public void run() {
             byte[] readData = new byte[mBufferSize];
             FileOutputStream fos = null;
             try {
@@ -103,38 +121,21 @@ public class TrainingFragment extends Fragment {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_training, container, false);
-    }
-
-    @Override
-    public void onViewCreated (@NotNull View view,
-                               Bundle savedInstanceState) {
-        Button bt_record = view.findViewById(R.id.bt_record);
-        bt_record.setOnClickListener(this::onRecord);
+        }
     }
 
     public void onRecord(View view) {
         Button b = (Button)view;
         if (isRecording) {
             isRecording = false;
-            b.setText("Record");
+            b.setText(R.string.btn_record);
         }
         else {
             isRecording = true;
-            b.setText("Stop");
+            b.setText(R.string.btn_stop);
 
-            if(mAudioRecord == null) {
-                mAudioRecord = new AudioRecord(mAudioSource, mSampleRate, mChannelCount, mAudioFormat, mBufferSize);
-                mAudioRecord.startRecording();
-            }
-            mRecordThread.start();
+            mRecordThread t = new mRecordThread();
+            t.start();
         }
     }
 }

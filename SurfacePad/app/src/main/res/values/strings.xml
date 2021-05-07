@@ -6,4 +6,6 @@
     <string name="bt_record">Record</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="btn_record">Record</string>
+    <string name="btn_stop">Stop</string>
 </resources>

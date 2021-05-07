@@ -8,3 +8,4 @@
 ##### W3 - Coding to get stereo MIC input with a smartphone
 ##### W4 - Coding to get stereo MIC input with a smartphone
 ##### W5 - Coding to get stereo MIC input with a smartphone & Check audio data with MATLAB
+##### W6 - Add aditional data and finding features(In progress)
