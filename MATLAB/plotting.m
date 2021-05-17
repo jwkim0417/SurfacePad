@@ -1,3 +1,5 @@
+
+%%
 figure(2);
 subplot(2, 2, [1, 3]);
 plot(data);
@@ -13,13 +15,63 @@ subplot(2, 1, 2);
 plot(dt(:, 2));
 ylim([-0.13 0.13]);
 %%
-figure(31);
+rate1 = zeros(1,3);
+rate2 = zeros(1,3);
+rate3 = zeros(1,3);
+%%
+rate7 = zeros(10, 1);
+rate8 = zeros(10, 1);
+rate9 = zeros(10, 1);
+%%
+l = max(data(:, 1));
+r = max(data(:, 2));
+rate9(10) = r / l;
+
+%%
+figure;
 subplot(2, 1, 1);
-plot(knock(:, 1));
+plot(data(:,1));
+ylim([-0.2 0.2]);
+subplot(2, 1, 2);
+plot(data(:,2));
+ylim([-0.2 0.2]);
+%%
+figure;
+x = 1:length(data(:, 1));
+plot(x, data(:, 1).^2, 'b', x, data(:, 2).^2, 'r'), grid on;
+ylim([0 0.1]);
+% plot(data(:, 2).^2);
+% ylim([0 0.1]);
+
+%%
+ttest1 = ttest(:,1);
+ttest2 = ttest(:,2);
+
+while ttest1(1) < 0.005
+    ttest1 = ttest1(2:end);
+end
+disp("doing")
+while ttest2(1) < 0.005
+    ttest2 = ttest2(2:end);
+end
+
+l1 = length(ttest1);
+l2 = length(ttest2);
+if l1 > l2
+    ttest1 = ttest1(1:l2);
+else
+    ttest2 = ttest2(1:l1);
+end
+%%
+ttest3 = [ttest1 ttest2];
+figure(81);
+subplot(2, 1, 1);
+plot(ttest3(:, 1));
 ylim([-0.5 0.5]);
 subplot(2, 1, 2);
-plot(knock(:, 2));
+plot(ttest3(:, 2));
 ylim([-0.5 0.5]);
+
 %%
 figure(41);
 plot(knock(:, 1), 'r');
@@ -45,7 +97,7 @@ hold on;
 plot(a2)
 hold off;
 %%
-s = knock(:, 1);
+s = ttest(:, 1);
 Y = fft(s);
 L = length(s);
 
