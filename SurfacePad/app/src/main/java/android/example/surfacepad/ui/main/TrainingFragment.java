@@ -39,27 +39,27 @@ public class TrainingFragment extends Fragment {
         // Required empty public constructor
     }
 
-//    private AudioRecord findAudioRecord() {
-//        for (int rate : new int[] {44100, 48000}) {
-//            for (short audioFormat : new short[] { AudioFormat.ENCODING_PCM_8BIT, AudioFormat.ENCODING_PCM_16BIT }) {
-//                for (short channelConfig : new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO }) {
-//                    try {
-//                        Log.d("AudiopRecording", "Attempting rate " + rate + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-//                        int bufferSize = AudioRecord.getMinBufferSize(rate, channelConfig, audioFormat);
-//                        if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
-//                            AudioRecord recorder = new AudioRecord(mAudioSource, rate, channelConfig, audioFormat, bufferSize);
-//                            Log.d("STATE", "val: " + recorder.getState());
-//                            if (recorder.getState() == AudioRecord.STATE_INITIALIZED)
-//                                return recorder;
-//                        }
-//                    } catch (Exception e) {
-//                        Log.e("AudiopRecording", rate + "Exception, keep trying.",e);
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-//    }
+    private AudioRecord findAudioRecord() {
+        for (int rate : new int[] {44100, 48000}) {
+            for (short audioFormat : new short[] { AudioFormat.ENCODING_PCM_8BIT, AudioFormat.ENCODING_PCM_16BIT }) {
+                for (short channelConfig : new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO }) {
+                    try {
+                        Log.d("AudiopRecording", "Attempting rate " + rate + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+                        int bufferSize = AudioRecord.getMinBufferSize(rate, channelConfig, audioFormat);
+                        if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
+                            AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, rate, channelConfig, audioFormat, bufferSize);
+                            Log.d("STATE", "val: " + recorder.getState());
+                            if (recorder.getState() == AudioRecord.STATE_INITIALIZED)
+                                return recorder;
+                        }
+                    } catch (Exception e) {
+                        Log.e("AudiopRecording", rate + "Exception, keep trying.",e);
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -128,7 +128,7 @@ public class TrainingFragment extends Fragment {
         Button b = (Button)view;
         if (isRecording) {
             isRecording = false;
-            b.setText(R.string.btn_record);
+            b.setText(R.string.bt_record);
         }
         else {
             isRecording = true;

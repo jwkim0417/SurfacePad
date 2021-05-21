@@ -10,3 +10,4 @@
 ##### W5 - Coding to get stereo MIC input with a smartphone & Check audio data with MATLAB
 ##### W6 - Add additional data and finding features
 ##### W7 - Make knocking sound classifier with Matlab
+##### W8 - Processing and Plotting stereo audio data in Real-Time
