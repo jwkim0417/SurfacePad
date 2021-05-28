@@ -19,7 +19,7 @@ import java.util.Objects;
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @StringRes
-    private static final int[] TAB_TITLES = new int[]{R.string.tab_text_1, R.string.tab_text_2, R.string.tab_text_3};
+    private static final int[] TAB_TITLES = new int[]{R.string.tab_text_2, R.string.tab_text_1};
     private final Context mContext;
 
     public SectionsPagerAdapter(Context context, FragmentManager fm) {
@@ -32,13 +32,10 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         Fragment fragment = null;
         switch (position) {
             case 0:
-                fragment = new TrainingFragment();
+                fragment = new EtcFragment();
                 break;
             case 1:
-                fragment = new RecognitionFragment();
-                break;
-            case 2:
-                fragment = new EtcFragment();
+                fragment = new TrainingFragment();
                 break;
         }
         return Objects.requireNonNull(fragment);

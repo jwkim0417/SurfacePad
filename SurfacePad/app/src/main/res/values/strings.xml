@@ -1,8 +1,7 @@
 <resources>
     <string name="app_name">SurfacePad</string>
     <string name="tab_text_1">Training</string>
-    <string name="tab_text_2">Recognition</string>
-    <string name="tab_text_3">Etc</string>
+    <string name="tab_text_2">Real-Time</string>
     <string name="bt_record">Record</string>
     <string name="bt_recog">Recognition</string>
     <!-- TODO: Remove or change this placeholder text -->

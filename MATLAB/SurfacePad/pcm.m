@@ -2,7 +2,7 @@
 %%
 fs = 48000;
 precision = 'int16';
-fid = fopen('2021-05-14-10_19_08.pcm');
+fid = fopen('2021-05-27-07_33_45.pcm');
 audio = int16(fread(fid, Inf, precision, 'ieee-le'));
 fclose(fid);
 % stereo = reshape(audio, [], 2);
@@ -11,8 +11,24 @@ n_odd = audio(1:2:end);
 n_even = audio(2:2:end);
 
 stereo = [n_odd n_even];
+%%
+figure;
+plot(n_odd);
 
-audiowrite('test.wav', stereo, fs, 'BitsPerSample', 16);
+% audiowrite('test.wav', stereo, fs, 'BitsPerSample', 16);
+%%
+m_data = table2array(data);
+m_data1 = table2array(data1);
+figure;
+subplot(2, 1, 1);
+plot(m_data);
+subplot(2, 1, 2);
+plot(m_data1);
+%%
+for i = 1:256
+    m_data(i) = data(i,1);
+    m_data1(i) = data1(i,1);
+end
 %%
 fid = fopen('2021-05-10-06_50_03.pcm');
 audio = int16(fread(fid, Inf, precision, 'ieee-le'));

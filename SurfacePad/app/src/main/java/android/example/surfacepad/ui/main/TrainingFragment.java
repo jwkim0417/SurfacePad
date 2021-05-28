@@ -101,10 +101,10 @@ public class TrainingFragment extends Fragment {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            Log.d(TAG, "BUFFERSIZE: " + mBufferSize);
 
             while(isRecording) {
-                int ret = mAudioRecord.read(readData, 0, mBufferSize);
-                Log.d(TAG, "read bytes is " + ret);
+                mAudioRecord.read(readData, 0, mBufferSize);
                 try {
                     fos.write(readData, 0, mBufferSize);
                 } catch (IOException e) {
