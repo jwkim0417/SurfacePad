@@ -13,3 +13,4 @@
 ##### W8 - Processing and Plotting stereo audio data in Real-Time
 ##### W9 - Real-Time audio processing & detect position
 ###### additional commit: Detect double knocking & Run application in background
+##### W10 - Add functions for each knock and make semi-permanent background service
