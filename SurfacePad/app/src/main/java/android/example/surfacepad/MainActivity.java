@@ -24,8 +24,6 @@ import androidx.lifecycle.Observer;
      private final int CALL_PERMISSION_CODE = 9919;
      Intent mServiceIntent;
      private ServiceForBackground mService;
-
-//    public static MutableLiveData<Boolean> isRunning = new MutableLiveData<>(false);
     public static boolean isRunning = false;
 
     @Override
@@ -42,21 +40,11 @@ import androidx.lifecycle.Observer;
         }
 
         else {
-//        if(!isRunning) {
-//            isRunning = true;
-//            startService(new Intent(this, ServiceForBackground.class));
-//        }
-
             mService = new ServiceForBackground();
             mServiceIntent = new Intent(this, mService.getClass());
             if (!isMyServiceRunning(mService.getClass())) {
                 startService(mServiceIntent);
             }
-
-            Intent startMain = new Intent(Intent.ACTION_MAIN);
-            startMain.addCategory(Intent.CATEGORY_HOME);
-            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(startMain);
         }
     }
 
@@ -88,6 +76,7 @@ import androidx.lifecycle.Observer;
 
      @Override
      protected void onPause() {
+         Log.d(TAG, "PAUSED");
          finish();
          super.onPause();
      }

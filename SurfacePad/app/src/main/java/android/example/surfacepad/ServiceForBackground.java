@@ -1,5 +1,6 @@
 package android.example.surfacepad;
 
+import android.Manifest;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -9,6 +10,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.example.surfacepad.util.Complex;
 import android.example.surfacepad.util.FFT;
 import android.graphics.Color;
@@ -27,7 +29,9 @@ import android.view.MotionEvent;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -39,9 +43,10 @@ import java.util.Vector;
 public class ServiceForBackground extends Service {
     private static final String TAG = "BackgroundService";
     private static final String TAG2 = "DOUBLE";
+
     private static final double DETECT_THRESHOLD = 50;
     private static final double DETECT_DOUBLEKNOCK = 5;
-    private static final double ENERGY_THRESHOLD = 6;
+    private static final double ENERGY_THRESHOLD = 4;
     private static final int WINDOW_LENGTH = 128;
 
     private final int mSampleRate = 48000;
@@ -50,7 +55,7 @@ public class ServiceForBackground extends Service {
     private final short mAudioFormat = AudioFormat.ENCODING_PCM_16BIT;
     private final int mBufferSize = AudioRecord.getMinBufferSize(mSampleRate, mChannelCount, mAudioFormat);
 
-    private final AudioRecord mAudioRecord = new AudioRecord(mAudioSource, mSampleRate, mChannelCount, mAudioFormat, mBufferSize);;
+    private AudioRecord mAudioRecord;
     private boolean isRecording = false;
     private Vector<Double> lWin;
     private Vector<Double> rWin;
@@ -60,7 +65,7 @@ public class ServiceForBackground extends Service {
 
     private int numCenter;
 
-    private final AudioRecord mAudioRecord2 = new AudioRecord(mAudioSource, mSampleRate, mChannelCount, mAudioFormat, mBufferSize);
+    private AudioRecord mAudioRecord2;
     private boolean isRecording2 = false;
     private Vector<Double> lWin2;
     private Vector<Double> rWin2;
@@ -71,19 +76,22 @@ public class ServiceForBackground extends Service {
 
     private int action;
 
-    private final Intent dialIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:01020437158"));
-    private final Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:01020437158"));
-    private final Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.android.com"));
+    private final Intent activityIntent = new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    private final Intent mainIntent = new Intent(Intent.ACTION_MAIN).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).addCategory(Intent.CATEGORY_HOME);
+    private final Intent dialIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:01020437158")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+    private final Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:01020437158")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+    private final Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=JNU1ObVB1VU")).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
     private AudioManager audioManager;
     private Context mContext;
     private boolean isMute;
 
     private boolean isRunning = false;
 
-
     @Override
     public void onCreate() {
         super.onCreate();
+        mAudioRecord = new AudioRecord(mAudioSource, mSampleRate, mChannelCount, mAudioFormat, mBufferSize);
+        mAudioRecord2 = new AudioRecord(mAudioSource, mSampleRate, mChannelCount, mAudioFormat, mBufferSize);
         isRunning = false;
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mContext = getApplicationContext();
@@ -133,8 +141,8 @@ public class ServiceForBackground extends Service {
         isRecording = false;
         MediaPlayer mp = MediaPlayer.create(this, R.raw.service_terminated);
         mp.setOnCompletionListener(MediaPlayer::release);
-        mAudioRecord.stop();
-        mAudioRecord2.stop();
+//        mAudioRecord.stop();
+//        mAudioRecord2.stop();
         super.onDestroy();
         stoptimertask();
         isRunning = false;
@@ -416,7 +424,7 @@ public class ServiceForBackground extends Service {
                 mp = MediaPlayer.create(this, R.raw.up);
                 mp.setOnCompletionListener(MediaPlayer::release);
                 mp.start();
-                startActivity(webIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK));
+                startActivity(webIntent);
                 break;
             case 30:
                 Log.d(TAG2, "POS: DOWN");
@@ -430,7 +438,7 @@ public class ServiceForBackground extends Service {
                 mp = MediaPlayer.create(this, R.raw.center_center);
                 mp.setOnCompletionListener(MediaPlayer::release);
                 mp.start();
-                stopSelf();
+                startActivity(mainIntent);
                 break;
             case 12:
                 Log.d(TAG2, "POS: CENTER+UP");
@@ -444,8 +452,8 @@ public class ServiceForBackground extends Service {
                 mp = MediaPlayer.create(this, R.raw.center_down);
                 mp.setOnCompletionListener(MediaPlayer::release);
                 mp.start();
-                startActivity(dialIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK));
-                startActivity(callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK));
+                startActivity(dialIntent);
+                startActivity(callIntent);
                 break;
             case 21:
                 Log.d(TAG2, "POS: UP+CENTER");
@@ -468,6 +476,7 @@ public class ServiceForBackground extends Service {
                 mp.setOnCompletionListener(MediaPlayer::release);
                 mp.start();
                 new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(mContext, "UP+DOWN", Toast.LENGTH_SHORT).show());
+                stopSelf();
                 break;
             case 31:
                 Log.d(TAG2, "POS: DOWN+CENTER");
