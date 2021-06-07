@@ -7,16 +7,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.ActivityManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
  public class MainActivity extends AppCompatActivity {
      private static final String TAG = "MAIN";
@@ -24,7 +19,6 @@ import androidx.lifecycle.Observer;
      private final int CALL_PERMISSION_CODE = 9919;
      Intent mServiceIntent;
      private ServiceForBackground mService;
-    public static boolean isRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

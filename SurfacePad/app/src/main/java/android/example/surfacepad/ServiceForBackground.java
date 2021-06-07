@@ -1,16 +1,11 @@
 package android.example.surfacepad;
 
-import android.Manifest;
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.example.surfacepad.util.Complex;
 import android.example.surfacepad.util.FFT;
 import android.graphics.Color;
@@ -23,30 +18,25 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Collections;
 import java.util.Vector;
 
 public class ServiceForBackground extends Service {
     private static final String TAG = "BackgroundService";
     private static final String TAG2 = "DOUBLE";
 
-    private static final double DETECT_THRESHOLD = 50;
+    private static final double DETECT_THRESHOLD = 30;
     private static final double DETECT_DOUBLEKNOCK = 5;
-    private static final double ENERGY_THRESHOLD = 4;
+    private static final double ENERGY_THRESHOLD = 3;
     private static final int WINDOW_LENGTH = 128;
 
     private final int mSampleRate = 48000;
@@ -59,7 +49,8 @@ public class ServiceForBackground extends Service {
     private boolean isRecording = false;
     private Vector<Double> lWin;
     private Vector<Double> rWin;
-    private double currEnergy;
+    private double currLEnergy;
+    private double currREnergy;
     private int numUp;
     private int numDown;
 
@@ -69,14 +60,14 @@ public class ServiceForBackground extends Service {
     private boolean isRecording2 = false;
     private Vector<Double> lWin2;
     private Vector<Double> rWin2;
-    private double dblEnergy;
+    private double dblLEnergy;
+    private double dblREnergy;
     private int numUp2;
     private int numDown2;
     private int numCenter2;
 
     private int action;
 
-    private final Intent activityIntent = new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     private final Intent mainIntent = new Intent(Intent.ACTION_MAIN).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).addCategory(Intent.CATEGORY_HOME);
     private final Intent dialIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:01020437158")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
     private final Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:01020437158")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
@@ -130,7 +121,6 @@ public class ServiceForBackground extends Service {
             mAudioRecord2.startRecording();
             isRecording = true;
             new mRecordThread().start();
-            startTimer();
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
@@ -141,10 +131,7 @@ public class ServiceForBackground extends Service {
         isRecording = false;
         MediaPlayer mp = MediaPlayer.create(this, R.raw.service_terminated);
         mp.setOnCompletionListener(MediaPlayer::release);
-//        mAudioRecord.stop();
-//        mAudioRecord2.stop();
         super.onDestroy();
-        stoptimertask();
         isRunning = false;
     }
 
@@ -152,24 +139,6 @@ public class ServiceForBackground extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    private Timer timer;
-    public int counter=0;
-    public void startTimer() {
-        timer = new Timer();
-        TimerTask timerTask = new TimerTask() {
-            public void run() {
-                Log.i("Count", "=========  " + (counter++));
-            }
-        };
-        timer.schedule(timerTask, 1000, 1000); //
-    }
-    public void stoptimertask() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
     }
 
     public class mRecordThread extends Thread {
@@ -182,23 +151,22 @@ public class ServiceForBackground extends Service {
             byte[] readData = new byte[mBufferSize];
             short[] convertShort = new short[mBufferSize/2];
             boolean oneKnock = false;
-            currEnergy = 0;
+            currLEnergy = 0;
+            currREnergy = 0;
             action = 0;
             int detectNum = 0;
-
 
             while(isRecording) {
                 if(!oneKnock && detectNum > 0) {
                     if (detectNum < DETECT_THRESHOLD) {
-                        Log.d(TAG, "NOT A KNOCK!");
                         isRecording2 = false;
                     }
                     else posDecision(false);
                     lWin = new Vector<>(Arrays.asList(initDoubleWithZeros()));
                     rWin = new Vector<>(Arrays.asList(initDoubleWithZeros()));
-                    currEnergy = 0;
+                    currLEnergy = 0;
+                    currREnergy = 0;
                     detectNum = 0;
-                    Log.d(TAG, "DETECT DONE!");
                     continue;
                 }
                 else {
@@ -226,23 +194,26 @@ public class ServiceForBackground extends Service {
         }
 
         public void run() {
-            Log.d(TAG2, "DOUBLE KNOCK DETECT START");
             lWin2 = new Vector<>(Arrays.asList(initDoubleWithZeros()));
             rWin2 = new Vector<>(Arrays.asList(initDoubleWithZeros()));
             byte[] readData = new byte[mBufferSize];
             short[] convertShort = new short[mBufferSize/2];
             boolean oneKnock = false;
-            dblEnergy = 0;
+            boolean isKnockOccur = false;
+            dblLEnergy = 0;
+            dblREnergy = 0;
             int detectNum2 = 0;
             isRecording2 = true;
             int loopCount = 0;
 
-            while(loopCount++ < 70 && isRecording2) {
+            while(loopCount++ < 50 && isRecording2) {
+                if(loopCount > 31 && !isKnockOccur) {
+                    break;
+                }
                 if(!oneKnock && detectNum2 > 0) {
-                    if (detectNum2 < DETECT_THRESHOLD) {
-                        Log.d(TAG2, "NOT A KNOCK!");
+                    if (!(detectNum2 < DETECT_THRESHOLD)) {
+                        posDecision(true);
                     }
-                    else posDecision(true);
                     isRecording2 = false;
                 }
                 else {
@@ -252,6 +223,7 @@ public class ServiceForBackground extends Service {
                 for(int i = 0; i < mBufferSize/4; i++) {
                     if (detect(convertShort[2*i]/32768.0, convertShort[2*i+1]/32768.0, detectNum2, true)) {
                         oneKnock = !(detectNum2++ > DETECT_THRESHOLD);
+                        isKnockOccur = true;
                         break;
                     }
                     else {
@@ -259,44 +231,52 @@ public class ServiceForBackground extends Service {
                     }
                 }
             }
-
-            Log.d(TAG2, "DOUBLE DONE!");
             performAction(action);
             action = 0;
         }
     }
 
     private boolean detect(double lData, double rData, int count, boolean isDouble) {
-        double tmpL;
+        double tmpL, tmpR;
         if (!isDouble) {
             tmpL = lWin.remove(0);
             lWin.add(lData);
-            rWin.remove(0);
+            tmpR = rWin.remove(0);
             rWin.add(rData);
-            currEnergy += (lData * lData - tmpL * tmpL);
-            if (currEnergy > ENERGY_THRESHOLD) {
-                if (count > 44 && count < 50) {
-                    Double[] mLWindowsArr = lWin.toArray(new Double[WINDOW_LENGTH * 2]);
-                    System.arraycopy(initDoubleWithZeros(), 0, mLWindowsArr, WINDOW_LENGTH, WINDOW_LENGTH);
-                    Double[] mRWindowsArr = rWin.toArray(new Double[WINDOW_LENGTH * 2]);
-                    System.arraycopy(initDoubleWithZeros(), 0, mRWindowsArr, WINDOW_LENGTH, WINDOW_LENGTH);
-                    classify(mLWindowsArr, mRWindowsArr, false);
+            currLEnergy += (lData * lData - tmpL * tmpL);
+            currREnergy += (rData * rData - tmpR * tmpR);
+            if (Math.max(currLEnergy, currREnergy) > ENERGY_THRESHOLD) {
+                if (count > 24 && count < 30) {
+                    if (currLEnergy * 5 < currREnergy) {
+                        numDown++;
+                    }
+                    else if (currREnergy * 5 < currLEnergy) {
+                        numUp++;
+                    }
+                    else {
+                        classify(normalizeArray(lWin), normalizeArray(rWin), false);
+                    }
                 }
                 return true;
             }
         } else {
             tmpL = lWin2.remove(0);
             lWin2.add(lData);
-            rWin2.remove(0);
+            tmpR = rWin2.remove(0);
             rWin2.add(rData);
-            dblEnergy += (lData * lData - tmpL * tmpL);
-            if (dblEnergy > ENERGY_THRESHOLD) {
-                if (count > 44 && count < 50) {
-                    Double[] mLWindowsArr = lWin2.toArray(new Double[WINDOW_LENGTH*2]);
-                    System.arraycopy(initDoubleWithZeros(), 0, mLWindowsArr, WINDOW_LENGTH, WINDOW_LENGTH);
-                    Double[] mRWindowsArr = rWin2.toArray(new Double[WINDOW_LENGTH*2]);
-                    System.arraycopy(initDoubleWithZeros(), 0, mRWindowsArr, WINDOW_LENGTH, WINDOW_LENGTH);
-                    classify(mLWindowsArr, mRWindowsArr, true);
+            dblLEnergy += (lData * lData - tmpL * tmpL);
+            dblREnergy += (rData * rData - tmpR * tmpR);
+            if (Math.max(dblLEnergy, dblREnergy) > ENERGY_THRESHOLD) {
+                if (count > 24 && count < 30) {
+                    if (dblLEnergy * 5 < dblREnergy) {
+                        numDown2++;
+                    }
+                    else if (dblREnergy * 5 < dblLEnergy) {
+                        numUp2++;
+                    }
+                    else {
+                        classify(normalizeArray(lWin2), normalizeArray(rWin2), true);
+                    }
                 }
                 return true;
             }
@@ -335,7 +315,7 @@ public class ServiceForBackground extends Service {
             }
         }
         Log.d(TAG, "IDX: " + idx);
-        if (idx < 3 || idx > WINDOW_LENGTH * 2 - 7) {
+        if (idx < 5 || idx > WINDOW_LENGTH * 2 - 5) {
             if (isDouble) {
                 numCenter2++;
             }
@@ -502,9 +482,21 @@ public class ServiceForBackground extends Service {
                 new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(mContext, "VOLUME DOWN", Toast.LENGTH_SHORT).show());
                 break;
             default:
-                Log.d(TAG2, "NOT A KNOCK!");
+                Log.d("ACTION", "NOT A KNOCK!");
                 break;
         }
+    }
+
+    private Double[] normalizeArray(Vector<Double> win) {
+        double max = Math.max(Math.abs(Collections.min(win)), Collections.max(win));
+
+        Double[] tmpArr = win.toArray(new Double[WINDOW_LENGTH * 2]);
+        for(int i = 0; i < WINDOW_LENGTH; i++) {
+            tmpArr[i] = tmpArr[i] / max;
+        }
+        System.arraycopy(initDoubleWithZeros(), 0, tmpArr, WINDOW_LENGTH, WINDOW_LENGTH);
+
+        return tmpArr;
     }
 
     public static Double[] initDoubleWithZeros() {
